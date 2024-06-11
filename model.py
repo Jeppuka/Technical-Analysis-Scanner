@@ -32,17 +32,17 @@ def prepare_dataloader(file_path, batch_size=32, shuffle=True):
     return dataloader
 
 # Prepare dataloaders
-train_loader = prepare_dataloader('training.csv', batch_size=32, shuffle=True)
-val_loader = prepare_dataloader('validation.csv', batch_size=32, shuffle=False)
-test_loader = prepare_dataloader('testing.csv', batch_size=32, shuffle=False)
+train_loader = prepare_dataloader('synthetic-data/training.csv', batch_size=32, shuffle=True)
+val_loader = prepare_dataloader('synthetic-data/validation.csv', batch_size=32, shuffle=False)
+test_loader = prepare_dataloader('synthetic-data/testing.csv', batch_size=32, shuffle=False)
 
 # Define the neural network
 class SimpleNN(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(SimpleNN, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 64)
-        self.fc2 = nn.Linear(64, 32)
-        self.fc3 = nn.Linear(32, output_dim)
+        self.fc1 = nn.Linear(input_dim, 32)
+        self.fc2 = nn.Linear(32, 16)
+        self.fc3 = nn.Linear(16, output_dim)
         
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -52,14 +52,14 @@ class SimpleNN(nn.Module):
 
 # Initialize the model, loss function, and optimizer
 # Use a sample to get input_dim and output_dim
-X_sample, _ = load_data('training.csv')
+X_sample, _ = load_data('synthetic-data/training.csv')
 input_dim = X_sample.shape[1]
-output_dim = len(np.unique(pd.read_csv('training.csv')['Pattern']))
+output_dim = len(np.unique(pd.read_csv('synthetic-data/training.csv')['Pattern']))
 
 model = SimpleNN(input_dim, output_dim)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0005)
 
 # Training loop
 num_epochs = 50
@@ -108,29 +108,4 @@ print(f"Test Accuracy: {100 * correct / total}%")
 
 
 
-
-
-new_data = pd.read_csv('new_data.csv')
-
-# Drop any non-numeric columns (like 'Pattern' if it exists in this new data)
-X_new = new_data.drop(columns=['Pattern'], errors='ignore').values
-
-# Convert the new data to a PyTorch tensor
-X_new_tensor = torch.tensor(X_new, dtype=torch.float32)
-
-# Get the model prediction
-model.eval()  # Set the model to evaluation mode
-with torch.no_grad():
-    outputs = model(X_new_tensor)
-    _, predicted = torch.max(outputs, 1)
-
-# Decode the prediction to class labels
-label_encoder = LabelEncoder()
-label_encoder.fit(pd.read_csv('training.csv')['Pattern'])  # Fit the label encoder with training data labels
-predicted_labels = label_encoder.inverse_transform(predicted.numpy())
-
-# Print the predictions
-print("Predicted labels for the new data:")
-print(predicted_labels)
-
-torch.save(model.state_dict(), 'stock_pattern_model.pth')
+torch.save(model.state_dict(), 'synthetic-data/stock_pattern_model.pth')

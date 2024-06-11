@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 class SimpleNN(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(SimpleNN, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 64)
-        self.fc2 = nn.Linear(64, 32)
-        self.fc3 = nn.Linear(32, output_dim)
+        self.fc1 = nn.Linear(input_dim, 32)
+        self.fc2 = nn.Linear(32, 16)
+        self.fc3 = nn.Linear(16, output_dim)
         
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -24,11 +24,11 @@ class SimpleNN(nn.Module):
 
 # Initialize the model
 def initialize_model():
-    X_sample, _ = load_data('training.csv')
+    X_sample, _ = load_data('synthetic-data/training.csv')
     input_dim = X_sample.shape[1]
-    output_dim = len(np.unique(pd.read_csv('training.csv')['Pattern']))
+    output_dim = len(np.unique(pd.read_csv('synthetic-data/training.csv')['Pattern']))
     model = SimpleNN(input_dim, output_dim)
-    model.load_state_dict(torch.load('stock_pattern_model.pth'))
+    model.load_state_dict(torch.load('synthetic-data/stock_pattern_model.pth'))
     model.eval()  # Set the model to evaluation mode
     return model
 
@@ -57,7 +57,7 @@ def decode_predictions(predicted, label_encoder):
 
 # Load and prepare label encoder
 label_encoder = LabelEncoder()
-label_encoder.fit(pd.read_csv('training.csv')['Pattern'])  # Fit the label encoder with training data labels
+label_encoder.fit(pd.read_csv('synthetic-data/training.csv')['Pattern'])  # Fit the label encoder with training data labels
 
 # Initialize the model
 model = initialize_model()

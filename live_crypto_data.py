@@ -5,6 +5,7 @@ from datetime import datetime
 import mplfinance as mpf
 import pandas as pd
 import matplotlib.dates as mdates
+import numpy as np
 
 api_key = os.getenv("CRYPTO_COMPARE_API_KEY")
 # print(api_key) # Uncomment this line if you want to print the API key
@@ -24,11 +25,13 @@ def get_hourly_data(symbol): #returns the 60 minute datapoints for a crypto
     low = [entry['low'] for entry in data['Data']['Data']]
     open = [entry['open'] for entry in data['Data']['Data']]
     close = [entry['close'] for entry in data['Data']['Data']]
+    volume = [entry['volumefrom'] for entry in data['Data']['Data']]
 
     times = [entry['time'] for entry in data['Data']['Data']]
     dates = [datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S') for time in times]
     
-    prices = {'open': open, 'high': high, 'low': low, 'close': close, 'dates': dates}
+    
+    prices = {'open': open, 'high': high, 'low': low, 'close': close, 'dates': dates, 'volume': volume}
     return prices
 
 def get_minute_price(symbol, period): #get a minute price for a specified number of minutes
@@ -64,4 +67,23 @@ def generate_hourly_plot(ticker):
              datetime_format='%H:%M', xrotation=45, savefig=dict(fname=f'{ticker}_hourly.jpg', dpi=300))
 
 
-generate_hourly_plot("ETH")
+
+#data = get_hourly_data("ETH")['close']
+#data = data[len(data)-15:]
+data = get_hourly_data("ETH")['close']
+data = data[len(data)-15:]
+
+def normalise_array(array):
+    first = array[0]
+    for x in range(len(array)):
+        array[x] = array[x]/first
+    return array
+
+
+def normalize(data):
+    min_val = min(data)
+    max_val = max(data)
+    return [(x - min_val) / (max_val - min_val) * (1.2 - 1.01) + 1.01 for x in data]
+    
+
+
